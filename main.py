@@ -9,8 +9,8 @@ from openai import OpenAI
 app = Flask(__name__)
 
 # 環境變數讀取 LINE 的憑證
-LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "6ba8a0606dad70861056f604f48847ff")
-LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "eo2KG1ZT7nw5hQYrNjfIvm522U+kJLGJ2S2BMKLhfClIk+NVjQkXwm7y7Gyl2ZwS0YpNIK6qfheVWRIAG/vzAtg1zxr7B0GkTGSB4cjh+X5CKig/RqlPojWp4VRACPt7WjlFXIYL2qBSFPaL6fkqtwdB04t89/1O/w1cDnyilFU=")
+LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "LINE_CHANNEL_SECRET")
+LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "LINE_CHANNEL_ACCESS_TOKEN")
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -48,19 +48,11 @@ def ask_openai(input_text):
     :param input_text: 要傳給 OpenAI 的問題或指令。
     :return: OpenAI 的回覆文字。
     """
-    st = "sk-proj-f8FiK-spUjv_3uB"
-    st += "XLNUzW1N1MQQUAevUERkg9HB"
-    st += "TOrxE_kbIBnyRJC5LAWGGhFkts"
-    st += "vj2qE9KRKT3BlbkFJvcrsGpps4P"
-    st += "PUUNBrl64ax81huKCEXXxcZVDDh"
-    st += "BsGUIiq3LHfUaWn3Cy"
-    st += "GsmicPPyGxsTfmc7EUA"
+    st = ""
     client = OpenAI(
         # 這裡建議用環境變數管理 API Key，避免寫死在程式碼裡。
         api_key=os.environ.get("OPENAI_API_KEY", st),
     )
-    str = os.environ.get("OPENAI_API_KEY", "取不到環境變數")
-    return "測試取值" + str + ";"
 
     response = client.responses.create(
         model="gpt-4o-mini-2024-07-18",
