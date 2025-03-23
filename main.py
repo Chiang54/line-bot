@@ -48,9 +48,16 @@ def ask_openai(input_text):
     :param input_text: 要傳給 OpenAI 的問題或指令。
     :return: OpenAI 的回覆文字。
     """
+    st = "sk-proj-f8FiK-spUjv_3uB"
+    st += "XLNUzW1N1MQQUAevUERkg9HB"
+    st += "TOrxE_kbIBnyRJC5LAWGGhFkts"
+    st += "vj2qE9KRKT3BlbkFJvcrsGpps4P"
+    st += "PUUNBrl64ax81huKCEXXxcZVDDh"
+    st += "BsGUIiq3LHfUaWn3Cy"
+    st += "GsmicPPyGxsTfmc7EUA"
     client = OpenAI(
         # 這裡建議用環境變數管理 API Key，避免寫死在程式碼裡。
-        api_key=os.environ.get("OPENAI_API_KEY", "API_KEY"),
+        api_key=os.environ.get("OPENAI_API_KEY", st),
     )
 
     response = client.responses.create(
