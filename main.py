@@ -3,6 +3,7 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from openai import OpenAI
 
 # 初始化 Flask 應用
 app = Flask(__name__)
@@ -34,11 +35,32 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    reply_text = f"你說的是：{event.message.text}"
+    reply_text = ask_openai(event.message.text)
     line_bot_api.reply_message(
         event.reply_token, 
         TextSendMessage(text=reply_text.encode('utf-8').decode('utf-8'))
     )
+
+
+def ask_openai(input_text):
+    """
+    呼叫 OpenAI API 的函式。
+    :param input_text: 要傳給 OpenAI 的問題或指令。
+    :return: OpenAI 的回覆文字。
+    """
+    client = OpenAI(
+        # 這裡建議用環境變數管理 API Key，避免寫死在程式碼裡。
+        api_key=os.environ.get("OPENAI_API_KEY", "API_KEY"),
+    )
+
+    response = client.responses.create(
+        model="gpt-4o-mini-2024-07-18",
+        instructions="You are a formal assistant that uses polite and concise language.",
+        input=input_text,
+    )
+    
+    return response.output_text
+
 
 if __name__ == "__main__":
 
