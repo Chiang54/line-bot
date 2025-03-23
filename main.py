@@ -60,7 +60,7 @@ def ask_openai(input_text):
         api_key=os.environ.get("OPENAI_API_KEY", st),
     )
     str = os.environ.get("OPENAI_API_KEY", "取不到環境變數")
-    return "測試取值" + str
+    return "測試取值" + str + ";"
 
     response = client.responses.create(
         model="gpt-4o-mini-2024-07-18",
