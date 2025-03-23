@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # 環境變數讀取 LINE 的憑證
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "6ba8a0606dad70861056f604f48847ff")
-LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "eo2KG1ZT7nw5hQYrNjfIvm522U+kJLGJ2S2BMKLhfClIk+NVjQkXwm7y7Gyl2ZwS0YpNIK6qfheVWRIAG/vzAtg1zxr7B0GGGGGjkwwwwwelwwwelwelwelwelwBelJFr4G5p4G5p5ppAp聊天A fkqtwdB04t89/1O/w1cDnyilFU=")
+LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "eo2KG1ZT7nw5hQYrNjfIvm522U+kJLGJ2S2BMKLhfClIk+NVjQkXwm7y7Gyl2ZwS0YpNIK6qfheVWRIAG/vzAtg1zxr7B0GkTGSB4cjh+X5CKig/RqlPojWp4VRACPt7WjlFXIYL2qBSFPaL6fkqtwdB04t89/1O/w1cDnyilFU=")
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -35,7 +35,10 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     reply_text = f"你說的是：{event.message.text}"
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+    line_bot_api.reply_message(
+        event.reply_token, 
+        TextSendMessage(text=reply_text.encode('utf-8').decode('utf-8'))
+    )
 
 if __name__ == "__main__":
 
