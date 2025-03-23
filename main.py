@@ -59,8 +59,8 @@ def ask_openai(input_text):
         # 這裡建議用環境變數管理 API Key，避免寫死在程式碼裡。
         api_key=os.environ.get("OPENAI_API_KEY", st),
     )
-    print(os.environ.get("OPENAI_API_KEY", "取不到環境變數"))
-    return "測試中斷...."
+    str = os.environ.get("OPENAI_API_KEY", "取不到環境變數")
+    return "測試取值" + str
 
     response = client.responses.create(
         model="gpt-4o-mini-2024-07-18",
