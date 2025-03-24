@@ -48,7 +48,8 @@ def ask_openai(input_text):
     :param input_text: 要傳給 OpenAI 的問題或指令。
     :return: OpenAI 的回覆文字。
     """
-    st = ""
+    st = os.environ.get("OPENAI_API_KEY", st)
+    return "OPENAI API KEY MISSING"
     client = OpenAI(
         # 這裡建議用環境變數管理 API Key，避免寫死在程式碼裡。
         api_key=os.environ.get("OPENAI_API_KEY", st),
