@@ -1,6 +1,6 @@
 # app/routers/linebot.py
 import os
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, HTTPException
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
@@ -16,13 +16,21 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 
 @router.post("/callback")
-async def callback():
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
+async def callback(request: Request):
+    # 取得 LINE 的簽名
+    signature = request.headers.get('X-Line-Signature')
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing X-Line-Signature")
+
+    # 取得請求的 body
+    body = await request.body()
+    body = body.decode('utf-8')
+
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
-        abort(400)
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
@@ -40,8 +48,9 @@ def ask_openai(input_text):
     :param input_text: 要傳給 OpenAI 的問題或指令。
     :return: OpenAI 的回覆文字。
     """
-    st = os.environ.get("OPENAI_API_KEY", st)
-    return "OPENAI API KEY MISSING"
+    st = os.environ.get("OPENAI_API_KEY", "OPENAI API KEY MISSING")
+    if st == "OPENAI API KEY MISSING":
+        return st
     client = OpenAI(
         # 這裡建議用環境變數管理 API Key，避免寫死在程式碼裡。
         api_key=os.environ.get("OPENAI_API_KEY", st),
