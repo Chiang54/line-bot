@@ -34,12 +34,16 @@ async def callback(request: Request):
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
-async def handle_message(event):
-    reply_text = ask_openai(event.message.text)
-    line_bot_api.reply_message(
-        event.reply_token, 
-        TextSendMessage(text=reply_text.encode('utf-8').decode('utf-8'))
-    )
+def handle_message(event):
+    try:
+        reply_text = ask_openai(event.message.text)
+        # 使用 encode 和 decode 可確保 UTF-8 兼容
+        line_bot_api.reply_message(
+            event.reply_token, 
+            TextSendMessage(text=reply_text.encode('utf-8').decode('utf-8'))
+        )
+    except Exception as e:
+        print(f"Error while handling message: {e}")
 
 
 def ask_openai(input_text):
