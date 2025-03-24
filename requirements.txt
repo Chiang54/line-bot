@@ -6,3 +6,8 @@ gunicorn==22.0.0
 Werkzeug==3.0.6
 aiohttp==3.8.5
 openai==1.68.2
+fastapi
+uvicorn
+requests
+beautifulsoup4
+httpx

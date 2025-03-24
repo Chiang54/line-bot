@@ -15,7 +15,7 @@
           "python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt";
         # Open editors for the following files by default, if they exist:
         default.openFiles = [ "README.md" "src/index.html" "main.py" ];
-        
+      
       };
       # Runs when a workspace is (re)started
       onStart = { run-server = "./devserver.sh"; };
