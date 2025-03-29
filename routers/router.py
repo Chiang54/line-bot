@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Query
-from lunardate import LunarDate
-import chinese_calendar as cc
 from datetime import datetime
 import random
+from lunardate import LunarDate
 
 
 router = APIRouter()
@@ -27,21 +26,16 @@ async def get_lunar_info(date: str = Query(..., description="西元日期，格�
     except ValueError:
         return {"error": "請提供正確的日期格式，例如：2025-01-01"}
 
-    # 陰曆資訊
     lunar = LunarDate.fromSolarDate(date_obj.year, date_obj.month, date_obj.day)
     lunar_date_str = f"{lunar.month}月{lunar.day}日"
     zodiac = get_zodiac(lunar.year)
     weekday_str = f"星期{'一二三四五六日'[date_obj.weekday()]}"
-
-    # 是否節氣
-    jieqi = cc.get_solar_term(date_obj)
 
     return {
         "gregorian_date": date,
         "weekday": weekday_str,
         "lunar_date": lunar_date_str,
         "zodiac": zodiac,
-        "solar_term": jieqi or "無",
         "suitable": random.sample(SUITABLE_ACTIVITIES, 3),
         "avoid": random.sample(AVOID_ACTIVITIES, 3)
     }
