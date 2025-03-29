@@ -5,6 +5,7 @@ from routers import router  # 引入 router 模組
 from crawler import crawler  # 引入 crawler 模組
 from stockAPI import main as st  # 引入 stockAPI 模組
 from my_linebot import my_linebot
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 # 設定允許來源（可根據實際情況限制）
