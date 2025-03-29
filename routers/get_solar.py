@@ -13,14 +13,6 @@ SOLAR_TERMS = [
     (270, "冬至"), (285, "小寒"), (300, "大寒"), (315, "立春"), (330, "雨水"), (345, "驚蟄")
 ]
 
-def get_zodiac(year):
-    return ZODIAC_SIGNS[(year - 4) % 12]
-
-def format_lunar_date(month: int, day: int) -> str:
-    month_str = LUNAR_MONTHS[month - 1]
-    day_str = LUNAR_DAYS[day - 1]
-    return f"{month_str}{day_str}"
-
 def get_solar_term_skyfield(target_date: datetime) -> str:
     # 使用 skyfield 判斷當天是否是節氣
     eph = load('de421.bsp')
