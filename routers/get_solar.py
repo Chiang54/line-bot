@@ -46,6 +46,7 @@ def get_nearest_solar_term(date: datetime) -> str:
     return nearest_term, round(longitude, 2)
 
 # 測試某日的節氣
-test_date = datetime(2025, 1, 1)
-term_name, solar_lon = get_nearest_solar_term(test_date)
-term_name, solar_lon
+# test_date = datetime(2025, 1, 1)
+# term_name, solar_lon = get_nearest_solar_term(test_date)
+# term_name, solar_lon
+# print(term_name)

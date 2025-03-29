@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 from datetime import datetime
 import random
 from lunardate import LunarDate
-from routers.get_solar import get_solar_longitude
+from routers.get_solar import get_nearest_solar_term
 
 router = APIRouter()
 
@@ -38,14 +38,14 @@ async def get_lunar_info(date: str = Query(..., description="西元日期，格�
     lunar_date_str = format_lunar_date(lunar.month, lunar.day)
     zodiac = get_zodiac(lunar.year)
     weekday_str = f"星期{'一二三四五六日'[date_obj.weekday()]}"
-    solar_term = get_solar_term_from_date(date_obj)
+    solar_term, solar_lon = get_nearest_solar_term(date_obj)
 
     return {
         "gregorian_date": date,
         "weekday": weekday_str,
         "lunar_date": lunar_date_str,
         "zodiac": zodiac,
-        "solar_term": solar_term or "無",
+        "solar_term": solar_term or "",
         "suitable": random.sample(SUITABLE_ACTIVITIES, 3),
         "avoid": random.sample(AVOID_ACTIVITIES, 3)
     }
