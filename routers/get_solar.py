@@ -1,33 +1,43 @@
-import math
-from datetime import datetime, timedelta
 from skyfield.api import load
+from skyfield.framelib import ecliptic_frame
+from datetime import datetime, timedelta
 
-# 建立簡化的節氣推算演算法（黃經法）
-# 資料來源：近似太陽視黃經計算（精度約±1日），用於辨別節氣名
-
-# 定義24節氣名稱及對應黃經角度（每隔15度一個）
-SOLAR_TERMS = [
-    (0, "春分"), (15, "清明"), (30, "穀雨"), (45, "立夏"), (60, "小滿"), (75, "芒種"),
-    (90, "夏至"), (105, "小暑"), (120, "大暑"), (135, "立秋"), (150, "處暑"), (165, "白露"),
-    (180, "秋分"), (195, "寒露"), (210, "霜降"), (225, "立冬"), (240, "小雪"), (255, "大雪"),
-    (270, "冬至"), (285, "小寒"), (300, "大寒"), (315, "立春"), (330, "雨水"), (345, "驚蟄")
+# 24節氣：太陽到達黃經的角度 (每15°)
+solar_terms = [
+    '春分', '清明', '穀雨', '立夏', '小滿', '芒種',
+    '夏至', '小暑', '大暑', '立秋', '處暑', '白露',
+    '秋分', '寒露', '霜降', '立冬', '小雪', '大雪',
+    '冬至', '小寒', '大寒', '立春', '雨水', '驚蟄'
 ]
 
-def get_solar_term_skyfield(target_date: datetime) -> str:
-    # 使用 skyfield 判斷當天是否是節氣
-    eph = load('de421.bsp')
+# 節氣對應角度 (0~360 每隔15°)
+solar_term_degrees = {i * 15: solar_terms[i] for i in range(24)}
+
+def get_solar_longitude(ephemeris, ts, date):
+    t = ts.utc(date.year, date.month, date.day, 12)  # 中午時間
+    sun = ephemeris['sun']
+    earth = ephemeris['earth']
+    astrometric = earth.at(t).observe(sun).apparent()
+    ecliptic = astrometric.frame_latlon(ecliptic_frame)
+    longitude = ecliptic[1].degrees
+    return longitude
+
+def get_solar_term(date_str):
+    # 載入天文資料
+    ephemeris = load('de421.bsp')
     ts = load.timescale()
-    sun, earth = eph['sun'], eph['earth']
 
-    for delta in range(-1, 2):  # 當天及前後各一天
-        dt = target_date + timedelta(days=delta)
-        t = ts.utc(dt.year, dt.month, dt.day)
-        astrometric = earth.at(t).observe(sun).apparent()
-        lon, lat, distance = astrometric.ecliptic_latlon()
-        solar_longitude = lon.degrees % 360
+    date = datetime.strptime(date_str, "%Y-%m-%d")
+    lon = get_solar_longitude(ephemeris, ts, date)
+    
+    # 檢查是否有接近節氣角度（容許±1°誤差）
+    for deg, term in solar_term_degrees.items():
+        if abs((lon - deg + 360) % 360) < 1:  # 處理角度環繞
+            return term
+    return ''
 
-        for deg, name in SOLAR_TERMS:
-            if abs(solar_longitude - deg) < 1:
-                if delta == 0:  # 只回傳當天是節氣的情況
-                    return name
-    return ""
+# 🔍 測試範例
+# print(get_solar_term('2025-03-05'))  # 應該是 驚蟄
+# print(get_solar_term('2025-03-19'))  # 應該是 ''
+# print(get_solar_term('2025-03-20'))  # 應該是 春分
+# print(get_solar_term('2025-03-21'))  # 應該是 ''

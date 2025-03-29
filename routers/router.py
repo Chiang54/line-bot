@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 from datetime import datetime
 import random
 from lunardate import LunarDate
-from routers.get_solar import get_solar_term_skyfield
+from routers.get_solar import get_solar_term
 
 router = APIRouter()
 
@@ -38,7 +38,7 @@ async def get_lunar_info(date: str = Query(..., description="西元日期，格�
     lunar_date_str = format_lunar_date(lunar.month, lunar.day)
     zodiac = get_zodiac(lunar.year)
     weekday_str = f"星期{'一二三四五六日'[date_obj.weekday()]}"
-    solar_term = get_solar_term_skyfield(date_obj)
+    solar_term = get_solar_term(date_obj)
 
     return {
         "gregorian_date": date,
