@@ -9,8 +9,8 @@ from my_linebot import my_linebot
 app = FastAPI()
 # 設定允許來源（可根據實際情況限制）
 origins = [
-    # "*",  # 🚨 開放全部來源，如果你要安全建議改成前端網址
-    "https://5174-idx-test-1743212816787.cluster-3g4scxt2njdd6uovkqyfcabgo6.cloudworkstations.dev/", 
+    "*",  # 🚨 開放全部來源，如果你要安全建議改成前端網址
+    # "https://5174-idx-test-1743212816787.cluster-3g4scxt2njdd6uovkqyfcabgo6.cloudworkstations.dev/", 
 ]
 
 # 加入 CORS middleware
