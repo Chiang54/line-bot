@@ -11,3 +11,5 @@ uvicorn
 requests
 beautifulsoup4
 httpx
+lunardate==0.2.2
+chinese-calendar==1.10.0
