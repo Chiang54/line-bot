@@ -1,5 +1,6 @@
 import math
 from datetime import datetime, timedelta
+from skyfield.api import load
 
 # 建立簡化的節氣推算演算法（黃經法）
 # 資料來源：近似太陽視黃經計算（精度約±1日），用於辨別節氣名
@@ -12,41 +13,29 @@ SOLAR_TERMS = [
     (270, "冬至"), (285, "小寒"), (300, "大寒"), (315, "立春"), (330, "雨水"), (345, "驚蟄")
 ]
 
-def get_solar_longitude(dt: datetime) -> float:
-    """估算指定日期的太陽視黃經角度（簡化版）"""
-    # 計算儒略日（Julian Day Number）
-    def julian_day(date: datetime) -> float:
-        y = date.year
-        m = date.month
-        d = date.day + date.hour / 24 + date.minute / 1440 + date.second / 86400
+def get_zodiac(year):
+    return ZODIAC_SIGNS[(year - 4) % 12]
 
-        if m <= 2:
-            y -= 1
-            m += 12
-        A = math.floor(y / 100)
-        B = 2 - A + math.floor(A / 4)
-        jd = math.floor(365.25 * (y + 4716)) + math.floor(30.6001 * (m + 1)) + d + B - 1524.5
-        return jd
+def format_lunar_date(month: int, day: int) -> str:
+    month_str = LUNAR_MONTHS[month - 1]
+    day_str = LUNAR_DAYS[day - 1]
+    return f"{month_str}{day_str}"
 
-    jd = julian_day(dt)
-    n = jd - 2451545.0  # 日數從 J2000.0 起算
-    L = (280.46 + 0.9856474 * n) % 360  # 太陽平均黃經（簡化公式）
-    return L
+def get_solar_term_skyfield(target_date: datetime) -> str:
+    # 使用 skyfield 判斷當天是否是節氣
+    eph = load('de421.bsp')
+    ts = load.timescale()
+    sun, earth = eph['sun'], eph['earth']
 
-def get_nearest_solar_term(date: datetime) -> str:
-    """回傳最接近的節氣名稱"""
-    longitude = get_solar_longitude(date)
-    min_diff = 360
-    nearest_term = None
-    for deg, name in SOLAR_TERMS:
-        diff = abs(longitude - deg)
-        if diff < min_diff:
-            min_diff = diff
-            nearest_term = name
-    return nearest_term, round(longitude, 2)
+    for delta in range(-1, 2):  # 當天及前後各一天
+        dt = target_date + timedelta(days=delta)
+        t = ts.utc(dt.year, dt.month, dt.day)
+        astrometric = earth.at(t).observe(sun).apparent()
+        lon, lat, distance = astrometric.ecliptic_latlon()
+        solar_longitude = lon.degrees % 360
 
-# 測試某日的節氣
-# test_date = datetime(2025, 1, 1)
-# term_name, solar_lon = get_nearest_solar_term(test_date)
-# term_name, solar_lon
-# print(term_name)
+        for deg, name in SOLAR_TERMS:
+            if abs(solar_longitude - deg) < 1:
+                if delta == 0:  # 只回傳當天是節氣的情況
+                    return name
+    return ""

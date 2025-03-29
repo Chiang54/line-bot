@@ -13,3 +13,4 @@ beautifulsoup4
 httpx
 lunardate==0.2.2
 chinese-calendar==1.10.0
+skyfield==1.52
