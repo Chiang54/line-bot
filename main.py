@@ -29,12 +29,12 @@ app.include_router(st.router, prefix='/stockAPI', tags=['證交所'])
 app.include_router(my_linebot.router, prefix='/linebot', tags=['LINEAPI'])
 
 # 自訂 404 錯誤處理 
-@app.exception_handler(404)
-async def custom_404_handler(request: Request, exc):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": "此路徑未被允許"}
-    )
+# @app.exception_handler(404)
+# async def custom_404_handler(request: Request, exc):
+#     return JSONResponse(
+#         status_code=404,
+#         content={"detail": "此路徑未被允許"}
+#     )
 
 # 🚀 啟動 FastAPI 應用
 if __name__ == "__main__":
