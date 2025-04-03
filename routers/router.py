@@ -27,8 +27,8 @@ def format_lunar_date(month: int, day: int) -> str:
     day_str = LUNAR_DAYS[day - 1]
     return f"{month_str}{day_str}"
 
-@router.get("/lunar")
-async def get_lunar_info(date: str = Query(..., description="西元日期，格式為 YYYY-MM-DD")):
+@router.get("/lunar_day")
+async def get_lunarday_info(date: str = Query(..., description="西元日期，格式為 YYYY-MM-DD")):
     try:
         date_obj = datetime.strptime(date, "%Y-%m-%d")
     except ValueError:
@@ -49,3 +49,79 @@ async def get_lunar_info(date: str = Query(..., description="西元日期，格�
         "suitable": random.sample(SUITABLE_ACTIVITIES, 3),
         "avoid": random.sample(AVOID_ACTIVITIES, 3)
     }
+
+
+@router.get("/lunar_month")
+async def get_lunar_month_info(
+    year: int = Query(..., description="西元年，例如：2025"),
+    month: int = Query(..., description="月份，1~12")
+):
+    try:
+        start_date = datetime(year, month, 1)
+    except ValueError:
+        return {"error": "請提供正確的年月格式，例如：2025 年 1 月"}
+
+    # 計算當月天數
+    next_month = start_date.replace(day=28) + timedelta(days=4)
+    end_date = next_month.replace(day=1) - timedelta(days=1)
+
+    result = []
+    current_date = start_date
+    while current_date <= end_date:
+        lunar = LunarDate.fromSolarDate(current_date.year, current_date.month, current_date.day)
+        lunar_date_str = format_lunar_date(lunar.month, lunar.day)
+        zodiac = get_zodiac(lunar.year)
+        weekday_str = f"星期{'一二三四五六日'[current_date.weekday()]}"
+        solar_term = get_solar_term(current_date)
+
+        result.append({
+            "gregorian_date": current_date.strftime("%Y-%m-%d"),
+            "weekday": weekday_str,
+            "lunar_date": lunar_date_str,
+            "zodiac": zodiac,
+            "solar_term": solar_term or "",
+            "suitable": random.sample(SUITABLE_ACTIVITIES, 3),
+            "avoid": random.sample(AVOID_ACTIVITIES, 3)
+        })
+        current_date += timedelta(days=1)
+
+    return result
+
+
+# 假設以下函式與常數已定義：
+# format_lunar_date(month, day)
+# get_zodiac(year)
+# get_solar_term(date_obj)
+# SUITABLE_ACTIVITIES, AVOID_ACTIVITIES
+
+@router.get("/lunar_year")
+async def get_lunar_year_info(
+    year: int = Query(..., description="西元年，例如：2025")
+):
+    try:
+        start_date = datetime(year, 1, 1)
+        end_date = datetime(year, 12, 31)
+    except ValueError:
+        return {"error": "請提供正確的年份，例如：2025"}
+
+    result = []
+    current_date = start_date
+    while current_date <= end_date:
+        lunar = LunarDate.fromSolarDate(current_date.year, current_date.month, current_date.day)
+        lunar_date_str = format_lunar_date(lunar.month, lunar.day)
+        zodiac = get_zodiac(lunar.year)
+        weekday_str = f"星期{'一二三四五六日'[current_date.weekday()]}"
+        solar_term = get_solar_term(current_date)
+
+        result.append({
+            "gregorian_date": current_date.strftime("%Y-%m-%d"),
+            "weekday": weekday_str,
+            "lunar_date": lunar_date_str,
+            "zodiac": zodiac,
+            "solar_term": solar_term or "",
+            "suitable": random.sample(SUITABLE_ACTIVITIES, 3),
+            "avoid": random.sample(AVOID_ACTIVITIES, 3)
+        })
+        current_date += timedelta(days=1)
+
+    return result
