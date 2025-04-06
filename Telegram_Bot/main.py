@@ -16,7 +16,18 @@ TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
 async def webhook(req: Request):
     data = await req.json()
 
-    if "message" in data:
+    
+
+    # 如果是傳送位置
+    if "message" in data and "location" in data["message"]:
+        chat_id = data["message"]["chat"]["id"]
+        lat = data["message"]["location"]["latitude"]
+        lon = data["message"]["location"]["longitude"]
+        weather_info = get_weather(lat, lon)
+        send_message(chat_id, weather_info)
+
+        
+    elif "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
 
@@ -94,3 +105,21 @@ def send_location_request(chat_id):
         }
     }
     requests.post(url, json=payload)
+
+# 取得天氣
+def get_weather(lat, lon):
+    url = f"https://wttr.in/{lat},{lon}?format=j1"
+    res = requests.get(url).json()
+    if "current_condition" in res:
+        curr = res["current_condition"][0]
+        desc = curr["weatherDesc"][0]["value"]
+        temp = curr["temp_C"]
+        feels = curr["FeelsLikeC"]
+        humidity = curr["humidity"]
+        return (
+            f"🌤️ 狀態：{desc}\n"
+            f"🌡️ 氣溫：{temp}°C（體感 {feels}°C）\n"
+            f"💧 濕度：{humidity}%"
+        )
+    else:
+        return "無法取得天氣資料（wttr.in）。"
