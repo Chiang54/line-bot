@@ -67,19 +67,32 @@ def send_message(chat_id, text):
     requests.post(url, json=payload)
 
 # 開始按鈕設定
-def send_welcome(chat_id, text=""):
+def send_welcome(chat_id, text=None):
     url = f"{TELEGRAM_API}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": text,
-        "reply_markup": {
-            "keyboard": [
-                [{"text": "📡 查天氣"}, {"text": "📰 看新聞"}]
-            ],
-            "resize_keyboard": True,
-            "one_time_keyboard": False
+    if text is None:
+        payload = {
+            "chat_id": chat_id,
+            "reply_markup": {
+                "keyboard": [
+                    [{"text": "📡 查天氣"}, {"text": "📰 看新聞"}]
+                ],
+                "resize_keyboard": True,
+                "one_time_keyboard": False
+            }
         }
-    }
+    else:
+        payload = {
+            "chat_id": chat_id,
+            "text": text,
+            "reply_markup": {
+                "keyboard": [
+                    [{"text": "📡 查天氣"}, {"text": "📰 看新聞"}]
+                ],
+                "resize_keyboard": True,
+                "one_time_keyboard": False
+            }
+        }
+
     requests.post(url, json=payload)
 
 # inLine設定
