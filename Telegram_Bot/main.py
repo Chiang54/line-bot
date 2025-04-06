@@ -67,7 +67,7 @@ def send_message(chat_id, text):
     requests.post(url, json=payload)
 
 # 開始按鈕設定
-def send_welcome(chat_id, text=None):
+def send_welcome(chat_id, text=""):
     url = f"{TELEGRAM_API}/sendMessage"
     payload = {
         "chat_id": chat_id,
