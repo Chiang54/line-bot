@@ -32,14 +32,12 @@ async def webhook(req: Request):
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
 
-        if text == "/start":
-            send_welcome(chat_id)
+        if text == "/start" or text == "📡 返回":
+            send_welcome(chat_id, "👋 歡迎使用 *村榮商店* 機器人！請選擇功能 👇")
         elif text == "📡 查天氣":
             send_location_request(chat_id)
         elif text == "📰 看新聞":
             send_message(chat_id, "這裡是今日新聞頭條：\n1. FastAPI 機器人爆紅！")
-        elif text =="📡 返回":
-            send_welcome(chat_id)
         else:
             send_message(chat_id, f"你說的是：{text}")
     
@@ -67,11 +65,11 @@ def send_message(chat_id, text):
     requests.post(url, json=payload)
 
 # 開始按鈕設定
-def send_welcome(chat_id):
+def send_welcome(chat_id, text=None):
     url = f"{TELEGRAM_API}/sendMessage"
     payload = {
         "chat_id": chat_id,
-        "text": "👋 歡迎使用 *村榮商店* 機器人！請選擇功能 👇",
+        "text": text,
         "reply_markup": {
             "keyboard": [
                 [{"text": "📡 查天氣"}, {"text": "📰 看新聞"}]
