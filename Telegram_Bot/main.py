@@ -26,7 +26,7 @@ async def webhook(req: Request):
         weather_info = get_weather(lat, lon)
         send_message(chat_id, weather_info)
 
-        
+
     elif "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
@@ -34,7 +34,7 @@ async def webhook(req: Request):
         if text == "/start":
             send_welcome(chat_id)
         elif text == "📡 查天氣":
-            send_message(chat_id, "目前天氣晴朗 ☀️（假資料）")
+            send_location_request(chat_id)
         elif text == "📰 看新聞":
             send_message(chat_id, "這裡是今日新聞頭條：\n1. FastAPI 機器人爆紅！")
         else:
