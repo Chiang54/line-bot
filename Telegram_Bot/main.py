@@ -32,8 +32,10 @@ async def webhook(req: Request):
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
 
-        if text == "/start" or text == "📡 返回":
+        if text == "/start":
             send_welcome(chat_id, "👋 歡迎使用 *村榮商店* 機器人！請選擇功能 👇")
+        elif text == "📡 返回":
+            send_welcome(chat_id)
         elif text == "📡 查天氣":
             send_location_request(chat_id)
         elif text == "📰 看新聞":
