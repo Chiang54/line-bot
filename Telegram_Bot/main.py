@@ -115,20 +115,21 @@ def send_news_headlines(chat_id: int):
     try:
         feed = feedparser.parse(NEWS_FEED_URL)
         headlines = "\n".join(
-            f"🔹 [{entry.title}]({entry.link})" for entry in feed.entries[:5]
+            f"🔹 <a href=\"{entry.link}\">{entry.title}</a>" for entry in feed.entries[:5]
         )
-        send_message(chat_id, f"📰 今日新聞頭條：\n\n{headlines}")
+        send_message(chat_id, f"📰 <b>今日新聞頭條：</b>\n\n{headlines}", parse_mode="HTML")
     except Exception as e:
         logging.error(f"讀取新聞失敗：{e}")
         send_message(chat_id, "⚠️ 無法取得新聞，請稍後再試。")
 
+
 # 發送訊息 (可選按鈕)
-def send_message(chat_id: int, text: str, keyboard: dict = None, reply_type: str = "inline"):
+def send_message(chat_id: int, text: str, keyboard: dict = None, reply_type: str = "inline", parse_mode: str = "HTML"):
     url = f"{TELEGRAM_API}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": "MarkdownV2"
+        "parse_mode": parse_mode
     }
 
     if keyboard:
@@ -138,8 +139,10 @@ def send_message(chat_id: int, text: str, keyboard: dict = None, reply_type: str
             payload["reply_markup"] = keyboard
 
     try:
+        logging.info(f"發送 payload：{payload}")
         response = requests.post(url, json=payload, timeout=5)
         response.raise_for_status()
         logging.info(f"訊息已送出：{response.json()}")
     except Exception as e:
         logging.error(f"傳送訊息失敗：{e}")
+        logging.error(f"回應內容：{response.text}")
