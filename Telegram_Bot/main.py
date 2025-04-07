@@ -12,7 +12,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 # 常數定義
-TOKEN = os.getenv("BOT_TOKEN","7891361371:AAE_ji1nBlgUB6JYtWc9PfLGcLJPUEOFAd0")
+TOKEN = os.getenv("BOT_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
 NEWS_FEED_URL = "https://news.google.com/news/rss/headlines?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
