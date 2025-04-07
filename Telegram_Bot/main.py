@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 TOKEN = os.getenv("BOT_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+NEWS_FEED_URL = "https://news.google.com/news/rss/headlines?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
 
 @router.post("/webhook")
@@ -107,6 +108,14 @@ def get_weather(lat, lon):
             return "⚠️ 無法取得天氣資料，請稍後再試。"
     except Exception as e:
         return f"❌ 查詢錯誤：{str(e)}"
+
+
+def send_news_headlines(chat_id):
+    feed = feedparser.parse(NEWS_FEED_URL)
+    headlines = ""
+    for entry in feed.entries[:5]:
+        headlines += f"🔹 [{entry.title}]({entry.link})\n"
+    send_message(chat_id, f"📰 今日新聞頭條：\n\n{headlines}")
 
 # 發送一般訊息
 def send_message(chat_id, text):
