@@ -79,11 +79,15 @@ def send_main_menu(chat_id: int):
 # 請用戶傳送位置
 def send_location_request(chat_id: int):
     text = "📍 請傳送你的位置，我會回覆你當地的天氣 ☁️"
-    keyboard = [
-        [{"text": "🔙 返回", "callback_data": "back"}],
-        [{"text": "📍 傳送位置", "request_location": True}]
-    ]
-    send_message(chat_id, text, keyboard)
+    keyboard = {
+        "keyboard": [
+            [{"text": "📍 傳送位置", "request_location": True}],
+            [{"text": "🔙 返回"}]
+        ],
+        "resize_keyboard": True,
+        "one_time_keyboard": True
+    }
+    send_message(chat_id, text, keyboard, reply_type="reply")
 
 # 查天氣
 def get_weather(lat: float, lon: float) -> str:
@@ -119,17 +123,23 @@ def send_news_headlines(chat_id: int):
         send_message(chat_id, "⚠️ 無法取得新聞，請稍後再試。")
 
 # 發送訊息 (可選按鈕)
-def send_message(chat_id: int, text: str, keyboard: list = None):
+def send_message(chat_id: int, text: str, keyboard: dict = None, reply_type: str = "inline"):
     url = f"{TELEGRAM_API}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": "Markdown"
+        "parse_mode": "MarkdownV2"
     }
+
     if keyboard:
-        payload["reply_markup"] = {"inline_keyboard": keyboard}
-    
+        if reply_type == "inline":
+            payload["reply_markup"] = {"inline_keyboard": keyboard}
+        elif reply_type == "reply":
+            payload["reply_markup"] = keyboard
+
     try:
-        requests.post(url, json=payload, timeout=5)
+        response = requests.post(url, json=payload, timeout=5)
+        response.raise_for_status()
+        logging.info(f"訊息已送出：{response.json()}")
     except Exception as e:
         logging.error(f"傳送訊息失敗：{e}")
