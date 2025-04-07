@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 TOKEN = os.getenv("BOT_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+NEWS_FEED_URL = "https://news.google.com/news/rss/headlines?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
 
 @router.post("/webhook")
@@ -26,18 +27,6 @@ async def webhook(req: Request):
         send_message(chat_id, weather_info)
         send_main_menu(chat_id)
 
-    # 純文字訊息處理
-    elif "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
-
-        if text == "/start":
-            send_main_menu(chat_id)
-        elif text == "📍 傳送位置":
-            send_location_request(chat_id)
-        else:
-            send_message(chat_id, f"你說的是：{text}")
-
     # Callback 按鈕點擊
     elif "callback_query" in data:
         query = data["callback_query"]
@@ -47,9 +36,19 @@ async def webhook(req: Request):
         if data_id == "weather":
             send_location_request(chat_id)
         elif data_id == "news":
-            send_message(chat_id, "📰 這裡是今日新聞頭條：\n1. FastAPI 機器人爆紅！")
+            send_news_headlines(chat_id)
         elif data_id == "back":
             send_main_menu(chat_id)
+
+    # 純文字訊息處理
+    elif "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+
+        if text == "/start":
+            send_main_menu(chat_id)
+        else:
+            send_message(chat_id, f"你說的是：{text}")
 
     return {"status": "ok"}
 
@@ -77,9 +76,10 @@ def send_location_request(chat_id):
         "chat_id": chat_id,
         "text": "📍 請傳送你的位置，我會回覆你當地的天氣 ☁️",
         "reply_markup": {
-            "keyboard": [[{"text": "📍 傳送位置", "request_location": True}]],
-            "resize_keyboard": True,
-            "one_time_keyboard": True
+            "inline_keyboard": [
+                [{"text": "🔙 返回", "callback_data": "back"}],
+                [{"text": "📍 傳送位置", "request_location": True}]
+            ]
         }
     }
     requests.post(url, json=payload)
@@ -104,6 +104,15 @@ def get_weather(lat, lon):
             return "⚠️ 無法取得天氣資料，請稍後再試。"
     except Exception as e:
         return f"❌ 查詢錯誤：{str(e)}"
+
+
+def send_news_headlines(chat_id):
+    feed = feedparser.parse(NEWS_FEED_URL)
+    headlines = ""
+    for entry in feed.entries[:5]:
+        headlines += f"🔹 [{entry.title}]({entry.link})\n"
+    send_message(chat_id, f"📰 今日新聞頭條：\n\n{headlines}")
+
 
 # 發送一般訊息
 def send_message(chat_id, text):
