@@ -47,6 +47,10 @@ async def webhook(req: Request):
 
         if text == "/start":
             send_main_menu(chat_id)
+        elif text == "📡 查天氣":
+            send_location_request(chat_id)
+        elif text == "📰 看新聞":
+            send_news_headlines(chat_id)
         else:
             send_message(chat_id, f"你說的是：{text}")
 
