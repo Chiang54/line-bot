@@ -2,7 +2,7 @@ FROM python:3.11
 
 # 安裝 Tesseract OCR 與中文語言包（可選）
 RUN apt-get update && \
-    apt-get install -y tesseract-ocr tesseract-ocr-chi-tra && \
+    apt-get install -y tesseract-ocr tesseract-ocr-chi-tra libgl1 libglib2.0-0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
