@@ -38,10 +38,6 @@ def preprocess_and_ocr(pil_image: Image.Image,fname) -> str:
 
     # 放大再辨識
     resized = cv2.resize(morph, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
-
-    save_path = "save/3_2_" + fname
-    cv2.imwrite(save_path, resized)
-
     # OCR
     config = "--psm 13 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     text = pytesseract.image_to_string(resized, config=config)
