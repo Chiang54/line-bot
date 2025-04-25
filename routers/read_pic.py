@@ -26,13 +26,17 @@ def generate_templates() -> dict:
         templates[char] = np.array(img)
     return templates
 
-# 2. Split CAPTCHA image into 4 character sub-images
+# 2. Split CAPTCHA image into character sub-images using contours
 
-def split_characters(image: np.ndarray, count: int = 4) -> List[np.ndarray]:
-    h, w = image.shape[:2]
-    step = w // count
-    chars = [image[0:h, i*step:(i+1)*step] for i in range(count)]
-    return chars
+def split_characters(image: np.ndarray) -> List[np.ndarray]:
+    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    char_imgs = []
+    for cnt in sorted(contours, key=lambda c: cv2.boundingRect(c)[0]):
+        x, y, w, h = cv2.boundingRect(cnt)
+        if w * h > 100:  # filter noise
+            char_img = image[y:y+h, x:x+w]
+            char_imgs.append(char_img)
+    return char_imgs
 
 # 3. Match single character using template
 
