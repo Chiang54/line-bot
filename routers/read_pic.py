@@ -3,18 +3,25 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import pytesseract
 from typing import List
+import os
 
 # 1. Generate templates A-Z, 0-9
 CHAR_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 TEMPLATE_SIZE = (20, 30)
-TEMPLATE_FONT = ImageFont.load_default()
+
+try:
+    TEMPLATE_FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+except OSError:
+    TEMPLATE_FONT = ImageFont.load_default()
 
 def generate_templates() -> dict:
     templates = {}
     for char in CHAR_SET:
         img = Image.new('L', TEMPLATE_SIZE, color=255)
         draw = ImageDraw.Draw(img)
-        w, h = draw.textsize(char, font=TEMPLATE_FONT)
+        bbox = draw.textbbox((0, 0), char, font=TEMPLATE_FONT)
+        w = bbox[2] - bbox[0]
+        h = bbox[3] - bbox[1]
         draw.text(((TEMPLATE_SIZE[0]-w)/2, (TEMPLATE_SIZE[1]-h)/2), char, font=TEMPLATE_FONT, fill=0)
         templates[char] = np.array(img)
     return templates
