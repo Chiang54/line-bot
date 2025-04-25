@@ -7,7 +7,7 @@ from typing import List
 # 1. Generate templates A-Z, 0-9
 CHAR_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 TEMPLATE_SIZE = (20, 30)
-TEMPLATE_FONT = ImageFont.truetype("arial.ttf", 24)
+TEMPLATE_FONT = ImageFont.load_default()
 
 def generate_templates() -> dict:
     templates = {}
