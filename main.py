@@ -18,10 +18,10 @@ origins = [
 # 加入 CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,          # 哪些網域可以存取
-    allow_credentials=True,
-    allow_methods=["*"],            # 允許的 HTTP 方法
-    allow_headers=["*"],            # 允許的 request headers
+    allow_origins=["*"],         # ✅ 開放全部來源
+    allow_credentials=False,     # ⚠️ 必須是 False，否則瀏覽器會報錯
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 # 引入路由
 app.include_router(router.router, prefix='/router', tags=['基本'])
