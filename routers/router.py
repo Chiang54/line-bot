@@ -14,7 +14,7 @@ router = APIRouter()
 async def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 
-@app.post("/ocr")
+@router.post("/ocr")
 async def ocr(image: UploadFile = File(...)):
     image_bytes = await image.read()
     image_stream = BytesIO(image_bytes)
