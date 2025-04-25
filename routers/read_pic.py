@@ -5,7 +5,7 @@ import pytesseract
 from typing import List
 import os
 
-def preprocess_and_ocr(pil_image: Image.Image,fname) -> str:
+def preprocess_and_ocr(pil_image: Image.Image) -> str:
     img = np.array(pil_image.convert("RGB"))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
