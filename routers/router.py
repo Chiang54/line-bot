@@ -31,35 +31,31 @@ def preprocess_and_ocr(pil_image: Image.Image) -> str:
     from PIL import Image
     import pytesseract
 
-    # PIL → OpenCV 格式
+    # PIL → OpenCV
     img = np.array(pil_image.convert("RGB"))
-
-    # 灰階處理
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # 去除彩色點與細線干擾（中值模糊效果佳）
-    blur = cv2.medianBlur(gray, 3)
+    # 高斯模糊稍微降低干擾，但改用較小 kernel
+    blur = cv2.GaussianBlur(gray, (1, 1), 0)
 
-    # 二值化（適應性比固定閾值準確）
-    thresh = cv2.adaptiveThreshold(
-        blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV, 11, 3
-    )
+    # 增強對比（可選）
+    blur = cv2.equalizeHist(blur)
 
-    # 形態學：去除雜訊小點
+    # 二值化（改用固定閾值，針對這類背景清楚的圖片更穩）
+    _, thresh = cv2.threshold(blur, 150, 255, cv2.THRESH_BINARY_INV)
+
+    # 放大圖像，避免細節誤判
+    enlarged = cv2.resize(thresh, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
+
+    # 形態學開運算：去除雜點但不破壞字型
     kernel = np.ones((2, 2), np.uint8)
-    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    morph = cv2.morphologyEx(enlarged, cv2.MORPH_OPEN, kernel)
 
-    # 放大圖像，有助於細字辨識
-    morph = cv2.resize(morph, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
-
-    # OCR 設定：限制只辨識大寫英文與數字（避免誤判干擾點）
+    # OCR 辨識
     config = r'--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    text = pytesseract.image_to_string(morph, config=config)
 
-    # 送出辨識
-    result = pytesseract.image_to_string(morph, config=config)
-
-    return result.strip()
+    return text.strip()
 
 
 
