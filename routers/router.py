@@ -3,11 +3,10 @@ from datetime import datetime, timedelta
 import random
 from lunardate import LunarDate
 from routers.get_solar import get_solar_term
+from routers.read_pic import preprocess_and_ocr
 from PIL import Image
-import pytesseract
 from io import BytesIO
-import cv2
-import numpy as np
+
 
 
 router = APIRouter()
@@ -24,38 +23,6 @@ async def ocr(image: UploadFile = File(...)):
 
     text = preprocess_and_ocr(image_obj)
     return {"text": text.strip()}
-
-def preprocess_and_ocr(pil_image: Image.Image) -> str:
-    import cv2
-    import numpy as np
-    from PIL import Image
-    import pytesseract
-
-    # PIL → OpenCV
-    img = np.array(pil_image.convert("RGB"))
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # 高斯模糊稍微降低干擾，但改用較小 kernel
-    blur = cv2.GaussianBlur(gray, (1, 1), 0)
-
-    # 增強對比（可選）
-    blur = cv2.equalizeHist(blur)
-
-    # 二值化（改用固定閾值，針對這類背景清楚的圖片更穩）
-    _, thresh = cv2.threshold(blur, 150, 255, cv2.THRESH_BINARY_INV)
-
-    # 放大圖像，避免細節誤判
-    enlarged = cv2.resize(thresh, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
-
-    # 形態學開運算：去除雜點但不破壞字型
-    kernel = np.ones((2, 2), np.uint8)
-    morph = cv2.morphologyEx(enlarged, cv2.MORPH_OPEN, kernel)
-
-    # OCR 辨識
-    config = r'--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    text = pytesseract.image_to_string(morph, config=config)
-
-    return text.strip()
 
 
 
