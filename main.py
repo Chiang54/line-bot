@@ -41,5 +41,5 @@ async def custom_404_handler(request: Request, exc):
 # 🚀 啟動 FastAPI 應用
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 8080))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
