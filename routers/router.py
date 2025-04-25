@@ -6,10 +6,13 @@ from routers.get_solar import get_solar_term
 from routers.read_pic import preprocess_and_ocr
 from PIL import Image
 from io import BytesIO
-
-
+import base64
+from pydantic import BaseModel
 
 router = APIRouter()
+
+class Base64Image(BaseModel):
+    image_base64: str
 
 @router.get("/items/{item_id}")
 async def read_item(item_id: int, q: str = None):
@@ -24,6 +27,18 @@ async def ocr(image: UploadFile = File(...)):
     text = preprocess_and_ocr(image_obj)
     return {"text": text.strip()}
 
+
+@router.post("/ocr_base64")
+async def ocr_base64(data: Base64Image):
+    # 去除開頭的 data:image/png;base64,
+    header, encoded = data.image_base64.split(",", 1)
+    image_data = base64.b64decode(encoded)
+
+    image = Image.open(BytesIO(image_data))
+
+    # OCR with your preprocess function
+    text = preprocess_and_ocr(image)
+    return {"text": text.strip()}
 
 
 # 農民曆查詢(參數[date=2025-01-01])
