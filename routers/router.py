@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, FastAPI, UploadFile, File
 from datetime import datetime, timedelta
 import random
 from lunardate import LunarDate
 from routers.get_solar import get_solar_term
+from PIL import Image
+import pytesseract
+from io import BytesIO
+
 
 router = APIRouter()
 
@@ -10,6 +14,14 @@ router = APIRouter()
 async def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 
+@app.post("/ocr")
+async def ocr(image: UploadFile = File(...)):
+    image_bytes = await image.read()
+    image_stream = BytesIO(image_bytes)
+    image_obj = Image.open(image_stream)
+
+    text = pytesseract.image_to_string(image_obj)
+    return {"text": text.strip()}
 
 # 農民曆查詢(參數[date=2025-01-01])
 ZODIAC_SIGNS = ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬']
