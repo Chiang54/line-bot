@@ -26,15 +26,40 @@ async def ocr(image: UploadFile = File(...)):
     return {"text": text.strip()}
 
 def preprocess_and_ocr(pil_image: Image.Image) -> str:
-    img = np.array(pil_image.convert('RGB'))
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 160, 255, cv2.THRESH_BINARY)
+    import cv2
+    import numpy as np
+    from PIL import Image
+    import pytesseract
 
-    # 可加上形態學去雜訊處理
-    kernel = np.ones((1, 1), np.uint8)
+    # 轉成 OpenCV 可處理的格式
+    img = np.array(pil_image.convert("RGB"))
+
+    # 轉灰階
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # 加強對比：自動直方圖均衡化
+    gray = cv2.equalizeHist(gray)
+
+    # 去噪：高斯模糊
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
+
+    # 二值化（自適應門檻效果通常比固定值更好）
+    thresh = cv2.adaptiveThreshold(
+        blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 6
+    )
+
+    # 去雜訊（開運算）
+    kernel = np.ones((2, 2), np.uint8)
     clean = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
-    return pytesseract.image_to_string(clean, config='--psm 7')
+    # DEBUG：存下處理後圖片（可選）
+    # cv2.imwrite("cleaned.png", clean)
+
+    # OCR：用 psm 7（單列文字），也可以試試 6 或 8
+    text = pytesseract.image_to_string(clean, config="--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+    return text.strip()
+
 
 # 農民曆查詢(參數[date=2025-01-01])
 ZODIAC_SIGNS = ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬']
