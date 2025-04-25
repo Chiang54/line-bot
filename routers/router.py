@@ -31,34 +31,36 @@ def preprocess_and_ocr(pil_image: Image.Image) -> str:
     from PIL import Image
     import pytesseract
 
-    # 轉成 OpenCV 可處理的格式
+    # PIL → OpenCV 格式
     img = np.array(pil_image.convert("RGB"))
 
-    # 轉灰階
+    # 灰階處理
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # 加強對比：自動直方圖均衡化
-    gray = cv2.equalizeHist(gray)
+    # 去除彩色點與細線干擾（中值模糊效果佳）
+    blur = cv2.medianBlur(gray, 3)
 
-    # 去噪：高斯模糊
-    blur = cv2.GaussianBlur(gray, (3, 3), 0)
-
-    # 二值化（自適應門檻效果通常比固定值更好）
+    # 二值化（適應性比固定閾值準確）
     thresh = cv2.adaptiveThreshold(
-        blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 6
+        blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV, 11, 3
     )
 
-    # 去雜訊（開運算）
+    # 形態學：去除雜訊小點
     kernel = np.ones((2, 2), np.uint8)
-    clean = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
-    # DEBUG：存下處理後圖片（可選）
-    # cv2.imwrite("cleaned.png", clean)
+    # 放大圖像，有助於細字辨識
+    morph = cv2.resize(morph, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
 
-    # OCR：用 psm 7（單列文字），也可以試試 6 或 8
-    text = pytesseract.image_to_string(clean, config="--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+    # OCR 設定：限制只辨識大寫英文與數字（避免誤判干擾點）
+    config = r'--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
-    return text.strip()
+    # 送出辨識
+    result = pytesseract.image_to_string(morph, config=config)
+
+    return result.strip()
+
 
 
 # 農民曆查詢(參數[date=2025-01-01])
