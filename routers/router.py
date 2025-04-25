@@ -6,6 +6,8 @@ from routers.get_solar import get_solar_term
 from PIL import Image
 import pytesseract
 from io import BytesIO
+import cv2
+import numpy as np
 
 
 router = APIRouter()
@@ -20,8 +22,19 @@ async def ocr(image: UploadFile = File(...)):
     image_stream = BytesIO(image_bytes)
     image_obj = Image.open(image_stream)
 
-    text = pytesseract.image_to_string(image_obj)
+    text = preprocess_and_ocr(image_obj)
     return {"text": text.strip()}
+
+def preprocess_and_ocr(pil_image: Image.Image) -> str:
+    img = np.array(pil_image.convert('RGB'))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 160, 255, cv2.THRESH_BINARY)
+
+    # 可加上形態學去雜訊處理
+    kernel = np.ones((1, 1), np.uint8)
+    clean = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+
+    return pytesseract.image_to_string(clean, config='--psm 7')
 
 # 農民曆查詢(參數[date=2025-01-01])
 ZODIAC_SIGNS = ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬']
