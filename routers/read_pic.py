@@ -5,80 +5,45 @@ import pytesseract
 from typing import List
 import os
 
-# 1. Generate templates A-Z, 0-9
-CHAR_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-TEMPLATE_SIZE = (20, 30)
-
-try:
-    TEMPLATE_FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
-except OSError:
-    TEMPLATE_FONT = ImageFont.load_default()
-
-def generate_templates() -> dict:
-    templates = {}
-    for char in CHAR_SET:
-        img = Image.new('L', TEMPLATE_SIZE, color=255)
-        draw = ImageDraw.Draw(img)
-        bbox = draw.textbbox((0, 0), char, font=TEMPLATE_FONT)
-        w = bbox[2] - bbox[0]
-        h = bbox[3] - bbox[1]
-        draw.text(((TEMPLATE_SIZE[0]-w)/2, (TEMPLATE_SIZE[1]-h)/2), char, font=TEMPLATE_FONT, fill=0)
-        templates[char] = np.array(img)
-    return templates
-
-# 2. Split CAPTCHA image into character sub-images using contours
-
-def split_characters(image: np.ndarray) -> List[np.ndarray]:
-    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    char_imgs = []
-    for cnt in sorted(contours, key=lambda c: cv2.boundingRect(c)[0]):
-        x, y, w, h = cv2.boundingRect(cnt)
-        if w * h > 100:  # filter noise
-            char_img = image[y:y+h, x:x+w]
-            char_imgs.append(char_img)
-    return char_imgs
-
-# 3. Match single character using template
-
-def match_character(char_img: np.ndarray, templates: dict) -> str:
-    max_score = -1
-    matched_char = ''
-    for char, tmpl in templates.items():
-        resized = cv2.resize(char_img, TEMPLATE_SIZE)
-        res = cv2.matchTemplate(resized, tmpl, cv2.TM_CCOEFF_NORMED)
-        score = res[0][0]
-        if score > max_score:
-            max_score = score
-            matched_char = char
-    return matched_char
-
-# 4. Full recognition pipeline using template matching
-
-def preprocess_and_ocr(pil_image: Image.Image) -> str:
-    # Convert to OpenCV format
+def preprocess_and_ocr(pil_image: Image.Image,fname) -> str:
     img = np.array(pil_image.convert("RGB"))
-
-    # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Equalize histogram
-    gray = cv2.equalizeHist(gray)
+    # 去彩色干擾點：只保留深色區域
+    _, mask = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+    gray = cv2.bitwise_and(gray, gray, mask=mask)
 
-    # Denoise with Gaussian blur
-    blur = cv2.GaussianBlur(gray, (3, 3), 0)
+    # 中值濾波代替高斯，更適合濾雜訊點
+    resized = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
+    blur = cv2.medianBlur(resized, 3)
 
-    # Adaptive threshold
+
+
+    # 增強對比度
+    adjusted = cv2.convertScaleAbs(blur, alpha=1.8, beta=-100)
+    
+
+
+
+    # 嘗試更大 blockSize + 更小 C
     thresh = cv2.adaptiveThreshold(
-        blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 6
+        adjusted, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV, 11, 9
     )
 
-    # Morphological open operation to remove noise
-    kernel = np.ones((2, 2), np.uint8)
-    clean = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    # 去小點（開運算）
+    kernel = np.ones((1, 1), np.uint8)
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
-    # Split and match using template
-    templates = generate_templates()
-    chars = split_characters(clean)
-    result = ''.join([match_character(c, templates) for c in chars])
 
-    return result
+    # 放大再辨識
+    resized = cv2.resize(morph, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
+
+    save_path = "save/3_2_" + fname
+    cv2.imwrite(save_path, resized)
+
+    # OCR
+    config = "--psm 13 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    text = pytesseract.image_to_string(resized, config=config)
+
+    return text.strip().replace(" ", "")
