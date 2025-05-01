@@ -75,8 +75,8 @@ def preprocess_and_ocr(image):
     model.eval()
 
     # 載入要預測的圖片
-    # image = Image.open("08548.png").convert("RGB")
-    # image = transform(image).unsqueeze(0)  # [1, 1, 60, 160]
+    image = image.convert("RGB")
+    image = transform(image).unsqueeze(0)  # [1, 1, 60, 160]
 
     # 預測
     with torch.no_grad():
