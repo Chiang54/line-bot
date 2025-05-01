@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY captcha_model.pt /app/
+COPY routers/captcha_model.pt /app/
 
 # 複製 requirements.txt 並安裝 Python 套件
 COPY requirements.txt requirements.txt
