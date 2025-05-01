@@ -3,6 +3,7 @@ import torch.nn as nn
 from PIL import Image
 import torchvision.transforms as transforms
 import string
+import os
 
 # 字元映射
 CHARS = string.digits + string.ascii_letters
@@ -67,6 +68,9 @@ def preprocess_and_ocr(image):
 
     # 載入模型
     model = CRNN(NUM_CLASSES)
+    
+    model_path = os.path.join(os.path.dirname(__file__), "captcha_model.pt")
+    torch.load(model_path, map_location="cpu")
     model.load_state_dict(torch.load("captcha_model.pt", map_location="cpu"))
     model.eval()
 
