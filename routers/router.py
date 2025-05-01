@@ -43,7 +43,7 @@ async def ocr_base64(data: Base64Image):
 
 
 @router.post("/tixcraft_base64")
-async def ocr_base64(data: Base64Image):
+async def tixcraft_base64(data: Base64Image):
     # 去除開頭的 data:image/png;base64,
     header, encoded = data.image_base64.split(",", 1)
     image_data = base64.b64decode(encoded)
