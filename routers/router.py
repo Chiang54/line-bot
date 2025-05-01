@@ -49,8 +49,7 @@ async def tixcraft_base64(data: Base64Image):
     image_data = base64.b64decode(encoded)
 
     image = Image.open(BytesIO(image_data))
-
-    # OCR with your preprocess function
+    
     text = preprocess_and_ocr(image)
     return {"text": text.strip()}
 
